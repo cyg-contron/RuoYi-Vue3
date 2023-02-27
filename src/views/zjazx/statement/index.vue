@@ -41,7 +41,7 @@
 
     <el-table v-loading="loading" :data="statementList" stripe border @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
-      <el-table-column label="保单代码" align="center" prop="policyCode"/>
+      <el-table-column label="保单代码" width="100" align="center" prop="policyCode"/>
       <el-table-column label="投保单位" width="100" align="center" prop="policy.insuranceUnit" show-overflow-tooltip/>
       <el-table-column label="被保险人" width="100" align="center" prop="policy.insured" show-overflow-tooltip/>
       <el-table-column label="行政区域" width="130" align="center" prop="policy.area">
@@ -50,7 +50,7 @@
         </template>
       </el-table-column>
       <el-table-column label="详情地址" width="200" align="center" prop="policy.adress" show-overflow-tooltip/>
-      <el-table-column label="行业类别" width="90" align="center" prop="policy.industryCategory">
+      <el-table-column label="行业类别" width="100" align="center" prop="policy.industryCategory" show-overflow-tooltip>
         <template #default="scope">
           <dict-tag :options="industry_category" :value="scope.row.policy.industryCategory"/>
         </template>
@@ -61,25 +61,27 @@
         </template>
       </el-table-column>
       <el-table-column label="工程师" align="center" prop="servePerson"/>
-      <!--      <el-table-column label="服务项目" align="center" prop="serveType" show-overflow-tooltip>-->
-      <!--        <template #default="scope">-->
-      <!--          <dict-tag :options="serve_type" :value="scope.row.serveType ? scope.row.serveType.split(',') : []"/>-->
-      <!--        </template>-->
-      <!--      </el-table-column>-->
+      <el-table-column label="服务项目" align="center" prop="serveType" show-overflow-tooltip>
+        <template #default="scope">
+          <dict-tag :options="serve_type" :value="scope.row.serveType ? scope.row.serveType.split(',') : []"
+                    suffix="&nbsp;&nbsp;"/>
+        </template>
+      </el-table-column>
       <el-table-column label="评估结论" align="center" prop="conclusion"/>
       <el-table-column label="整改进度" align="center" prop="rectificationProgress">
         <template #default="scope">
           <dict-tag :options="rectification_progress" :value="scope.row.rectificationProgress"/>
         </template>
       </el-table-column>
-      <el-table-column label="报告" align="center" prop="file" show-overflow-tooltip>
+      <el-table-column label="报告" width="60" align="center" prop="file" show-overflow-tooltip>
         <template #default="scope">
           <el-link :href="`${baseUrl}${scope.row.file}`" :underline="false" target="_blank">
-            <span class="el-icon-document"> {{ getFileName(scope.row.file) }} </span>
+            <svg-icon v-if="scope.row.file" icon-class="pdf" color="#ff461f"/>
+            <!--            <span class="el-icon-document"> {{ getFileName(scope.row.file) }} </span>-->
           </el-link>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
+      <el-table-column label="操作" width="160" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
                      v-hasPermi="['zjazx:statement:edit']">修改
@@ -99,23 +101,24 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
 
         <el-form-item label="保单代码" prop="policyCode">
-          <el-select :disabled="!!form.policy.insuranceUnit" v-model="selectPolicyCode" filterable remote
+          <el-select v-if="title.indexOf('修改')" v-model="selectPolicyCode" filterable remote
                      reserve-keyword placeholder="请输入保单代码关键字" :remote-method="handleGetPolicyByCode"
                      :loading="loading" @change="selectPolicyByCode">
             <el-option v-for="item in optionsPolicyCode" :key="item.policyCode" :value="item"
                        :label="`${item.policyCode}/${item.insuranceUnit}/${item.areaName}/${item.industryCategoryName}`"/>
           </el-select>
+          <div v-else class="form-disabled-full">{{ form.policyCode }}</div>
         </el-form-item>
 
         <el-row>
           <el-col :span="12">
             <el-form-item label="投保单位" prop="policy.insuranceUnit">
-              <el-input disabled v-model="form.policy.insuranceUnit"/>
+              <div class="form-disabled-full">{{ form.policy.insuranceUnit }}</div>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="被保险人" prop="policy.insured">
-              <el-input disabled v-model="form.policy.insured"/>
+              <div class="form-disabled-full">{{ form.policy.insured }}</div>
             </el-form-item>
           </el-col>
         </el-row>
@@ -123,23 +126,19 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="行业类别" prop="policy.industryCategory">
-              <el-select disabled v-model="form.policy.industryCategory">
-                <el-option v-for="dict in industry_category" :key="dict.value" :label="dict.label"
-                           :value="dict.value"></el-option>
-              </el-select>
+              <dict-tag class="form-disabled-full" :options="industry_category"
+                        :value="form.policy.industryCategory"/>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="行政区域" prop="policy.area">
-              <el-select disabled v-model="form.policy.area">
-                <el-option v-for="dict in area" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
-              </el-select>
+              <dict-tag class="form-disabled-full" :options="area" :value="form.policy.area"/>
             </el-form-item>
           </el-col>
         </el-row>
 
         <el-form-item label="详情地址" prop="policy.adress">
-          <el-input disabled v-model="form.policy.adress"/>
+          <div class="form-disabled-full">{{ form.policy.adress }}</div>
         </el-form-item>
 
         <el-form-item label="服务时间" prop="serveTime">
@@ -201,7 +200,6 @@ export default {
 <script setup>
 import {listStatement, getStatement, delStatement, addStatement, updateStatement} from "@/api/zjazx/statement";
 import {getPolicyByCode} from "@/api/zjazx/policy";
-import {getFileName} from '@/utils/strUtil'
 import {onMounted, onUnmounted} from "vue";
 
 const {proxy} = getCurrentInstance();
@@ -210,24 +208,16 @@ const {
 } = proxy.useDict("serve_type", "rectification_progress", "area", "industry_category");
 const baseUrl = import.meta.env.VITE_APP_BASE_API;
 
-// 遮罩层
-const loading = ref(false);
-// 选中数组
-const ids = ref([]);
-// 非单个禁用
-const single = ref(true);
-// 非多个禁用
-const multiple = ref(true);
-// 显示搜索条件
-const showSearch = ref(true);
-// 总条数
-const total = ref(0);
 // 评估报告表格数据
 const statementList = ref([]);
-// 弹出层标题
-const title = ref("");
-// 是否显示弹出层
 const open = ref(false);
+const loading = ref(true);
+const showSearch = ref(true);
+const ids = ref([]);
+const single = ref(true);
+const multiple = ref(true);
+const total = ref(0);
+const title = ref("");
 
 // 模糊搜索保单代码的数组
 const optionsPolicyCode = ref([]);
@@ -293,7 +283,7 @@ function cancel() {
 
 // 表单重置
 function reset() {
-  optionsPolicyCode.value = [], selectPolicyCode.value = {}, serveTypeArray.value = []
+  optionsPolicyCode.value = [], selectPolicyCode.value = {}, serveTypeArray.value = [];
   form.value = {
     statementId: null,
     policyCode: null,
@@ -381,7 +371,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const statementIds = row.statementId || ids.value;
-  proxy.$modal.confirm('是否确认删除评估报告编号为"' + statementIds + '"的数据项？').then(function () {
+  proxy.$modal.confirm('是否确认删除保单代码为"' + statementIds + '"的数据项？').then(function () {
     return delStatement(statementIds);
   }).then(() => {
     getList();
@@ -416,7 +406,7 @@ function handleGetPolicyByCode(policyCode) {
  */
 function selectPolicyByCode(val) {
   form.value.policyCode = val.policyCode;
-  selectPolicyCode.value  = val.policyCode;
+  selectPolicyCode.value = val.policyCode;
   form.value.policy = val;
 }
 

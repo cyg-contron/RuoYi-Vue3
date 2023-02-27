@@ -1,0 +1,16 @@
+.form-disabled-full {
+  --el-input-inner-height: calc(var(--el-input-height, 32px));
+  width: 100%;
+  box-sizing: border-box;
+  outline: 0;
+  color: var(--el-disabled-text-color);
+  -webkit-text-fill-color: var(--el-disabled-text-color);
+  cursor: not-allowed;
+  font-size: var(--font-size);
+  background-color: var(--el-disabled-bg-color);
+  padding: 0px 10px;;
+  height: 32px;
+  border: var(--el-border);
+  border-color: var(--el-border-color-light) !important;
+  border-radius: var(--el-border-radius-base);
+}

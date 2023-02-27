@@ -42,45 +42,50 @@
     <el-table v-loading="loading" :data="policyList" stripe border @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center"/>
       <el-table-column label="保单代码" width="100" align="center" prop="policyCode"/>
-      <el-table-column label="承保单位" width="100" align="center" prop="underwriter" show-overflow-tooltip/>
-      <el-table-column label="投保单位" width="100" align="center" prop="insuranceUnit" show-overflow-tooltip/>
-      <el-table-column label="被保险人" width="100" align="center" prop="insured" show-overflow-tooltip/>
+      <el-table-column label="承保单位" width="120" align="center" prop="underwriter" show-overflow-tooltip/>
+      <el-table-column label="投保单位" width="120" align="center" prop="insuranceUnit" show-overflow-tooltip/>
+      <el-table-column label="被保险人" width="120" align="center" prop="insured" show-overflow-tooltip/>
       <el-table-column label="行政区域" width="130" align="center" prop="area">
         <template #default="scope">
           <dict-tag :options="area" :value="scope.row.area"/>
         </template>
       </el-table-column>
-      <el-table-column label="详情地址" width="200" align="center" prop="adress" show-overflow-tooltip/>
-      <el-table-column label="行业类别" width="90" align="center" prop="industryCategory">
+      <el-table-column label="详情地址" width="240" align="center" prop="adress" show-overflow-tooltip/>
+      <el-table-column label="行业类别" width="100" align="center" prop="industryCategory" show-overflow-tooltip>
         <template #default="scope">
           <dict-tag :options="industry_category" :value="scope.row.industryCategory"/>
         </template>
       </el-table-column>
-      <el-table-column label="开始时间" align="center" prop="startTime" width="100">
+      <el-table-column label="开始时间" width="100" align="center" prop="startTime">
         <template #default="scope">
           <span>{{ parseTime(scope.row.startTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="结束时间" align="center" prop="endTime" width="100">
+      <el-table-column label="结束时间" width="100" align="center" prop="endTime">
         <template #default="scope">
           <span>{{ parseTime(scope.row.endTime, '{y}-{m}-{d}') }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="投保险种" align="center" prop="insuranceType" width="110">
+      <el-table-column label="投保险种" width="110" align="center" prop="insuranceType">
         <template #default="scope">
           <dict-tag :options="insurance_type" :value="scope.row.insuranceType"/>
         </template>
       </el-table-column>
-      <el-table-column label="币种" align="center" prop="currency">
+      <el-table-column label="币种" width="90" align="center" prop="currency">
         <template #default="scope">
           <dict-tag :options="currency" :value="scope.row.currency"/>
         </template>
       </el-table-column>
-      <el-table-column label="含税保费" align="center" prop="premiumIncludingTax"/>
-      <el-table-column label="报告" align="center" prop="file" show-overflow-tooltip>
+      <el-table-column label="含税保费" width="130" align="center" prop="premiumIncludingTax">
+        <template #default="scope">
+          <div>{{ scope.row.premiumIncludingTax.toLocaleString() }}</div>
+        </template>
+      </el-table-column>
+      <el-table-column label="报告" width="60" align="center" prop="file" show-overflow-tooltip>
         <template #default="scope">
           <el-link :href="`${baseUrl}${scope.row.file}`" :underline="false" target="_blank">
-            <span class="el-icon-document"> {{ getFileName(scope.row.file) }} </span>
+            <svg-icon v-if="scope.row.file" icon-class="pdf" color="#ff461f"/>
+            <!--            <span class="el-icon-document"> {{ getFileName(scope.row.file) }} </span>-->
           </el-link>
         </template>
       </el-table-column>
@@ -175,7 +180,7 @@
           <el-col :span="8">
             <el-form-item label="含税保费" prop="premiumIncludingTax">
               <el-input v-model="form.premiumIncludingTax" placeholder="请输入含税保费"
-                        @input="form.premiumIncludingTax=form.premiumIncludingTax.replace(/[^0-9.]/g,'')"/>
+                        @input="form.premiumIncludingTax=regexpCurrency(form.premiumIncludingTax)"/>
             </el-form-item>
           </el-col>
         </el-row>
@@ -202,7 +207,7 @@ export default {
 
 <script setup>
 import {listPolicy, getPolicy, delPolicy, addPolicy, updatePolicy} from "@/api/zjazx/policy";
-import {getFileName} from '@/utils/strUtil'
+import {getFileName, regexpCurrency} from '@/utils/zjazjUtil'
 
 const {proxy} = getCurrentInstance();
 const {
@@ -214,7 +219,7 @@ const {
 const baseUrl = import.meta.env.VITE_APP_BASE_API;
 
 // 遮罩层
-const loading = ref(false);
+const loading = ref(true);
 // 选中数组
 const ids = ref([]);
 // 非单个禁用
@@ -354,7 +359,7 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加保单管理";
+  title.value = "添加保单";
   // 下拉框默认选择第一个
   form.value.currency = currency.value[0].value;
   form.value.area = area.value[0].value;
@@ -371,7 +376,7 @@ function handleUpdate(row) {
     // 为时间范围的控制赋值
     startEndTime.value = [form.value.startTime, form.value.endTime]
     open.value = true;
-    title.value = "修改保单管理";
+    title.value = "修改保单";
   });
 }
 
@@ -405,7 +410,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const delPolicyCodes = row.policyCode || policyCodes.value;
-  proxy.$modal.confirm('是否确认删除保单管理编号为"' + delPolicyCodes + '"的数据项？').then(function () {
+  proxy.$modal.confirm('是否确认删除保单代码为"' + delPolicyCodes + '"的数据项？').then(function () {
     const policyIds = row.policyId || ids.value;
     return delPolicy(policyIds);
   }).then(() => {
