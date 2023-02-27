@@ -51,5 +51,5 @@ export function convertCurrency(money) {
     }
     return head + result.replace(/(零.)*零圆/, '圆')
         .replace(/(零.)+/g, '零')
-        .replace(/^整$/, '零元整');
+        .replace(/^整$/, '零元整').replace('圆整','元整');
 }

@@ -356,11 +356,16 @@ function getList() {
   loading.value = true;
   listAccident(queryParams.value).then(response => {
     accidentList.value = response.rows;
-    // 计算理赔合计
+    // 计算理赔合计，先清0
+    accidentMoneyCount.value = 0;
     accidentList.value.forEach((item => {
+      console.log(accidentMoneyCount.value + '+' + item.accidentMoney);
       accidentMoneyCount.value += item.accidentMoney;
       // 四舍五入保留2二位小数
-      accidentMoneyCount.value = parseFloat(accidentMoneyCount.value.toFixed(2));
+      let fixed = accidentMoneyCount.value.toFixed(2);
+      console.log('= fixed ', fixed);
+      accidentMoneyCount.value = parseFloat(fixed);
+      console.log('=' + accidentMoneyCount.value);
     }))
     total.value = response.total;
     loading.value = false;
