@@ -59,12 +59,19 @@
         </el-button>
       </el-col>
 
-      <el-col :span="6" style="margin-left: auto;">
-        <div style="display: flex; align-items: center; ">
-          <span style="width: 70px;">理赔合计</span>
-          <div class="form-disabled-full" style="width: 120px;">{{ accidentMoneyCount }}</div>
+      <div style="display: flex; align-items: center; margin-left: auto">
+        <span style="font-weight: bold;font-size: 14px;margin-right: 4px;">出险次数</span>
+        <div class="form-disabled-full" style="width: 120px;cursor: default;margin-right:16px">
+          {{ accidentList.length }}
         </div>
-      </el-col>
+
+        <span style="font-weight: bold;font-size: 14px;margin-right: 4px;">理赔合计</span>
+        <el-tooltip placement="top" :content="convertCurrency(accidentMoneyCount)">
+          <div class="form-disabled-full" style="width: 120px;cursor: default">
+            {{ accidentMoneyCount.toLocaleString() }}
+          </div>
+        </el-tooltip>
+      </div>
 
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
@@ -88,9 +95,11 @@
           <dict-tag :options="currency" :value="scope.row.accidentCurrency"/>
         </template>
       </el-table-column>
-      <el-table-column label="理赔金额" width="120" align="center" prop="accidentMoney" show-overflow-tooltip>
+      <el-table-column label="理赔金额" width="120" align="center" prop="accidentMoney">
         <template #default="scope">
-          <div>{{ `${scope.row.accidentMoney.toLocaleString()}（${convertCurrency(scope.row.accidentMoney)}）` }}</div>
+          <el-tooltip :content="convertCurrency(scope.row.accidentMoney)" placement="top">
+            <div>{{ scope.row.accidentMoney.toLocaleString() }}</div>
+          </el-tooltip>
         </template>
       </el-table-column>
       <el-table-column label="投保单位" width="100" align="center" prop="policy.insuranceUnit" show-overflow-tooltip/>
@@ -292,12 +301,12 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 
+// 删除时的提示
+const policyCodes = ref([]);
 // 模糊搜索保单代码的数组
 const optionsPolicyCode = ref([]);
 // 从模糊搜索保单代码数组中选择后的对象
 const selectPolicyCode = ref({});
-// 删除时的提示
-const policyCodes = ref([]);
 // 时间范围控制值
 const startEndTime = ref([]);
 // 理赔合计
@@ -347,8 +356,11 @@ function getList() {
   loading.value = true;
   listAccident(queryParams.value).then(response => {
     accidentList.value = response.rows;
+    // 计算理赔合计
     accidentList.value.forEach((item => {
       accidentMoneyCount.value += item.accidentMoney;
+      // 四舍五入保留2二位小数
+      accidentMoneyCount.value = parseFloat(accidentMoneyCount.value.toFixed(2));
     }))
     total.value = response.total;
     loading.value = false;
@@ -363,7 +375,7 @@ function cancel() {
 
 // 表单重置
 function reset() {
-  optionsPolicyCode.value = [], selectPolicyCode.value = {}, startEndTime.value = [], accidentMoneyCount.value = 0;
+  policyCodes.value = [], optionsPolicyCode.value = [], selectPolicyCode.value = {}, startEndTime.value = [];
   form.value = {
     accidentId: null,
     policyCode: null,
@@ -400,7 +412,13 @@ function resetQuery() {
 
 // 多选框选中数据
 function handleSelectionChange(selection) {
-  ids.value = selection.map(item => item.accidentId);
+  ids.value = [];
+  policyCodes.value = [];
+  selection.forEach(item => {
+    ids.value.push(item.accidentId);
+    policyCodes.value.push(item.policyCode);
+  })
+  // ids.value = selection.map(item => item.accidentId);
   single.value = selection.length != 1;
   multiple.value = !selection.length;
 }
@@ -451,8 +469,9 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const _accidentIds = row.accidentId || ids.value;
-  proxy.$modal.confirm('是否确认删除理赔信息-理赔管理编号为"' + _accidentIds + '"的数据项？').then(function () {
+  const delPolicyCodes = row.policyCode || policyCodes.value;
+  proxy.$modal.confirm('是否确认删除保单代码为"' + delPolicyCodes + '"的数据项？').then(function () {
+    const _accidentIds = row.accidentId || ids.value;
     return delAccident(_accidentIds);
   }).then(() => {
     getList();

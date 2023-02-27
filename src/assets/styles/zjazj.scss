@@ -1,12 +1,12 @@
 .form-disabled-full {
-  --el-input-inner-height: calc(var(--el-input-height, 32px));
   width: 100%;
   box-sizing: border-box;
   outline: 0;
   color: var(--el-disabled-text-color);
   -webkit-text-fill-color: var(--el-disabled-text-color);
   cursor: not-allowed;
-  font-size: var(--font-size);
+  font-size: 15px;
+  line-height: 2;
   background-color: var(--el-disabled-bg-color);
   padding: 0px 10px;;
   height: 32px;

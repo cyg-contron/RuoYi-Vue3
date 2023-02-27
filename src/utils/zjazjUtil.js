@@ -1,3 +1,7 @@
+const fraction = ['角', '分'];
+const digit = ['零', '壹', '贰', '叁', '肆', '伍', '陆', '柒', '捌', '玖'];
+const unit = [['圆', '万', '亿'], ['', '拾', '佰', '仟']];
+
 /**
  * 取文件名
  * @param url
@@ -27,15 +31,6 @@ export function regexpCurrency(val) {
  * @returns {string}
  */
 export function convertCurrency(money) {
-    const fraction = ['角', '分'];
-    const digit = [
-        '零', '壹', '贰', '叁', '肆',
-        '伍', '陆', '柒', '捌', '玖'
-    ];
-    const unit = [
-        ['元', '万', '亿'],
-        ['', '拾', '佰', '仟']
-    ];
     const head = money < 0 ? '欠' : '';
     money = Math.abs(money);
     let result = '';
@@ -54,7 +49,7 @@ export function convertCurrency(money) {
         result = uppercase.replace(/(零.)*零$/, '')
             .replace(/^$/, '零') + unit[0][i] + result;
     }
-    return head + result.replace(/(零.)*零元/, '元')
+    return head + result.replace(/(零.)*零圆/, '圆')
         .replace(/(零.)+/g, '零')
         .replace(/^整$/, '零元整');
 }

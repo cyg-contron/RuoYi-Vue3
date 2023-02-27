@@ -219,6 +219,8 @@ const multiple = ref(true);
 const total = ref(0);
 const title = ref("");
 
+// 删除时的提示
+const policyCodes = ref([]);
 // 模糊搜索保单代码的数组
 const optionsPolicyCode = ref([]);
 // 从模糊搜索保单代码数组中选择后的对象
@@ -283,7 +285,7 @@ function cancel() {
 
 // 表单重置
 function reset() {
-  optionsPolicyCode.value = [], selectPolicyCode.value = {}, serveTypeArray.value = [];
+  policyCodes.value = [], optionsPolicyCode.value = [], selectPolicyCode.value = {}, serveTypeArray.value = [];
   form.value = {
     statementId: null,
     policyCode: null,
@@ -319,7 +321,13 @@ function resetQuery() {
 
 // 多选框选中数据
 function handleSelectionChange(selection) {
-  ids.value = selection.map(item => item.statementId)
+  ids.value = [];
+  policyCodes.value = [];
+  selection.forEach(item => {
+    ids.value.push(item.statementId);
+    policyCodes.value.push(item.policyCode);
+  })
+  // ids.value = selection.map(item => item.statementId)
   single.value = selection.length !== 1
   multiple.value = !selection.length
 }
@@ -370,8 +378,9 @@ function submitForm() {
 
 /** 删除按钮操作 */
 function handleDelete(row) {
-  const statementIds = row.statementId || ids.value;
-  proxy.$modal.confirm('是否确认删除保单代码为"' + statementIds + '"的数据项？').then(function () {
+  const delPolicyCodes = row.policyCode || policyCodes.value;
+  proxy.$modal.confirm('是否确认删除保单代码为"' + delPolicyCodes + '"的数据项？').then(function () {
+    const statementIds = row.statementId || ids.value;
     return delStatement(statementIds);
   }).then(() => {
     getList();
